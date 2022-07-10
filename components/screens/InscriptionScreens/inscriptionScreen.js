@@ -1,60 +1,49 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TextInput, Button } from "react-native";
+import { View, Text, StyleSheet, TextInput, Button, Alert, TouchableOpacity } from "react-native";
 import * as SQLite from 'expo-sqlite'
 import { useNavigation } from "@react-navigation/native";
+import { useDispatch, useSelector } from "react-redux"
+import { setUser } from "../../slice/userSlice";
 
-const db = SQLite.openDatabase('db.testDb')
-//
+const db = SQLite.openDatabase('gymbDB')
 
 export default function InscriptionScreen(){
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [telephone, setTelephone] = useState('');
     const [mail, setMail] = useState('');
-    const [isConnected, setIsConnected] = useState(false);
-    const navigation = useNavigation()
-    
-    /*db.transaction(tx => {
-        tx.executeSql(
-            'CREATE TABLE IF NOT EXISTS connected (isConnected BOOL)'
-        )
-    })*/
-    db.transaction(tx => {
-        tx.executeSql('CREATE TABLE IF NOT EXISTS user(id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, password TEXT, telephone, TEXT, mail, TEXT)')
-    })
+    const navigation = useNavigation();
 
-    /*const insertFalse = () => {
-        db.transaction(tx => {
-            tx.executeSql('INSERT INTO connected (isConnected) values (?)', [false],
-                (txObj, resultSet) => {setIsConnected(false) , console.log("requete successful 1")},
-                (txObj,error) => console.log('Error', error)
-            )
-        })
-    }
-    const insertTrue = () => {
-        db.transaction(tx => {
-            tx.executeSql('UPDATE connected SET isConnected = ?', [true],
-                (txObj, resultSet) => {setIsConnected(true), console.log("requete successful 2", resultSet)},
-                (txObj,error) => console.log('Error', error)
-            )
-        })
-    }*/
-    
-    function IsConnected(username, password, telephone, email){
-        db.transaction(tx => {
-            tx.executeSql('INSERT INTO user (username, password, telephone, mail) values (?, ?, ?, ?)', [username, password, telephone, email],
-                (txObj, error) => console.log("Error", error)
-            )
-        })
-        db.transaction(tx => {
-            tx.executeSql('SELECT * FROM user', null,
-            (txObj, resultSet) => console.log(resultSet)
-            )
-        })
-        
+    const dispatch = useDispatch();
+    const { user } = useSelector((state) => state.user.user)
 
+    const validRegexEmail = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+    const validRegexTelephone = /^[0-9]/
+
+    const saveUser = async() => {
+        if(username.length == 0 || password.length == 0 || mail.length == 0 || telephone.length == 0){
+            Alert.alert('Please fill all fields')
+        } else if(!mail.valueOf().match(validRegexEmail)){
+            Alert.alert('Email invalid')
+        } else if (telephone.length != 10 || !telephone.valueOf().match(validRegexTelephone)) {
+            Alert.alert('telephone invalid')
+        } else {
+            try {
+                await db.transaction(async (tx) => {
+                    await tx.executeSql("INSERT INTO user (username, password, telephone, mail) VALUES (?, ?, ?, ?)",
+                        [username, password, telephone, mail],
+                        (tx, results) => {
+                            console.log("saved user to database: ", results)
+                        },
+                        (tx, error) => console.log("error insert into: ", error)
+                    );
+                })
+            } catch (error) {
+                console.log(error)
+            }
+            navigation.navigate("connexion")
+        }
     }
-    
 
     return(
         <View style={styles.body}>
@@ -79,7 +68,10 @@ export default function InscriptionScreen(){
                 value={mail}
                 onChangeText={setMail}
             />
-            <Button title="Sign in" onPress={() => {IsConnected(username, password, telephone, mail), navigation.navigate("connexion") }} />
+            <Button title="Sign in" onPress={() => saveUser()} />
+            <TouchableOpacity onPress={() => navigation.navigate("connexion")}>
+                <Text>log in</Text>
+            </TouchableOpacity>
         </View>
     );
 }

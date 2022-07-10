@@ -8,7 +8,7 @@ import PlannerScreen from "../screens/PlannerScreen/plannerScreen";
 import RegimeScreen from "../screens/RegimeScreen/regimeScreen";
 import ProfilScreen from "../screens/ProfilScreen/profilScreen";
 import { faHouse } from "@fortawesome/free-solid-svg-icons";
-import { faComments } from "@fortawesome/free-solid-svg-icons"
+import { faComment } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faPersonWalking } from "@fortawesome/free-solid-svg-icons"
 import { faCalendarDays } from "@fortawesome/free-solid-svg-icons"
@@ -41,7 +41,7 @@ export default function TabsBar(){
                 options={{
                     tabBarLabel:'My bros',
                     tabBarIcon: ({ color }) => (
-                        <FontAwesomeIcon icon={faComments} color={color} size={26} />
+                        <FontAwesomeIcon icon={faComment} color={color} size={26} />
                     )
                 }}>
             </Tab.Screen>
